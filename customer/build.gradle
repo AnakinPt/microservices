@@ -1,0 +1,122 @@
+buildscript {
+ 	ext {
+		springBootVersion = '2.0.3.RELEASE'
+	}
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.3.RELEASE")
+        classpath 'com.bmuschko:gradle-docker-plugin:3.6.1'
+    }
+}
+
+plugins {
+    id "io.spring.dependency-management" version "1.0.5.RELEASE"
+}
+
+group = 'hugoalexdias'
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.bmuschko.docker-spring-boot-application'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+import com.bmuschko.gradle.docker.tasks.image.*
+
+
+repositories {
+    mavenCentral()
+    maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
+    maven {
+        url 'https://repo.spring.io/libs-milestone'
+    }
+    maven {
+        url 'https://repo.spring.io/libs-snapshot'
+    }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile('org.springframework.cloud:spring-cloud-starter-config')
+	compile('org.springframework.boot:spring-boot-starter-actuator')
+	compile('org.springframework.boot:spring-boot-starter-web')
+	compile("org.springframework.boot:spring-boot-starter-batch")
+	compile("org.springframework.boot:spring-boot-starter-data-mongodb")
+    compile('com.google.code.gson:gson')
+    compile 'org.springframework.cloud:spring-cloud-kubernetes-core:0.3.0.RELEASE' 
+    compile 'org.projectlombok:lombok'
+    compile 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    compile 'com.querydsl:querydsl-mongodb'
+    compile 'com.querydsl:querydsl-apt'
+    
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('com.jayway.jsonpath:json-path')
+    runtime("com.h2database:h2")
+    
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:Finchley.BUILD-SNAPSHOT"
+	}
+}
+
+jar{
+    baseName = 'customer' 
+    version = '1.0.0'
+}
+bootJar {
+    baseName = 'customer'
+    version =  '1.0.0'
+}
+
+eclipse {
+	classpath {
+		 containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+		 containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+	}
+}
+
+docker {
+    url = 'tcp://192.168.99.100:2376'
+	registryCredentials {
+		url = 'https://registry-1.docker.io/v2/'
+		username = 'hugoalexdias'
+        password = 'WjZeIm39ihxSOySrL3KT'
+        email = 'hugo@hugo-dias.com.pt'
+	}
+	
+    springBootApplication {
+        baseImage = 'openjdk:8-alpine'
+        ports = [9090, 8080]
+        tag = "${project.group}/${bootJar.baseName}:${bootJar.version}"
+    }
+}
+
+/*
+task createDockerfile(type: Dockerfile) {    
+    destFile = project.file('build/docker/Dockerfile')
+    from 'openjdk:8-jre-alpine'
+    maintainer 'Hugo Dias "hugo@hugo-dias.com.pt"'
+    copyFile bootJar.archiveName, "/app/${bootJar.archiveName}"
+    entryPoint 'java'
+    defaultCommand '-jar', "/app/${bootJar.archiveName}"
+    exposePort 8080
+    runCommand 'apk --update --no-cache add curl'
+    instruction 'HEALTHCHECK CMD curl -f http://localhost:8080/health || exit 1'
+}
+*/
+
+task buildImage(type: DockerBuildImage) {
+    inputDir = file('build/docker')
+    tag = "${project.group}/${bootJar.baseName}:${bootJar.version}"
+}

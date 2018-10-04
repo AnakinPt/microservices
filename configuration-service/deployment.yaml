@@ -1,0 +1,81 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: configuration
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: configuration
+    spec:
+      containers:
+      - name: configuration
+        image: hugodias/configuration-service:1.0.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: spring.cloud.config.server.git.uri
+          valueFrom:
+           configMapKeyRef:
+              name: configuration-service-config-map
+              key: "spring.cloud.config.server.git.uri"
+        - name: server.port
+          valueFrom:
+           configMapKeyRef:
+              name: configuration-service-config-map
+              key: "server.port"
+        - name: spring.cloud.config.server.git.repos.development.pattern
+          valueFrom:
+           configMapKeyRef:
+              name: configuration-service-config-map
+              key: "spring.cloud.config.server.git.repos.development.pattern"
+        - name: spring.cloud.config.server.git.repos.development.uri
+          valueFrom:
+           configMapKeyRef:
+              name: configuration-service-config-map
+              key: "spring.cloud.config.server.git.repos.development.uri"
+        volumeMounts:
+        - name: configuration-service-volume 
+          mountPath: "/deployments/config" 
+          readOnly: true
+      volumes:
+      - name: configuration-service-volume
+        configMap:
+          name: configuration-service-config-map
+          items:
+          - key: spring.cloud.config.server.git.uri
+            path: application.properties
+          - key: server.port
+            path: application.properties
+          - key: spring.cloud.config.server.git.repos.development.pattern
+            path: application.properties
+          - key: spring.cloud.config.server.git.repos.development.uri
+            path: application.properties
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: configuration-service
+spec:
+  type: NodePort
+  selector:
+    app: configuration
+  ports:
+    - protocol: TCP
+      port: 8888
+      targetPort: 8888
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: configuration-service-config-map
+  namespace: default
+  labels:
+    name: configuration-service-config-map
+data:
+  "spring.cloud.config.server.git.uri": "https://github.com/AnakinPt/configuration.git"
+  "server.port": "8888"
+  "spring.cloud.config.server.git.repos.development.pattern": "*/dev"
+  "spring.cloud.config.server.git.repos.development.uri": "https://github.com/AnakinPt/dev-config.git"
+  
+      

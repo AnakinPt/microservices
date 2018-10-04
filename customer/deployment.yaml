@@ -1,0 +1,64 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: customer
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: customer-service
+    spec:
+      containers:
+      - name: customer-service
+        image: hugoalexdias/customer:1.0.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: spring.application.name
+          valueFrom:
+           configMapKeyRef:
+              name: customer-service-config-map
+              key: "spring.application.name"
+        - name: spring.cloud.config.uri
+          valueFrom:
+           configMapKeyRef:
+              name: customer-service-config-map
+              key: "spring.cloud.config.uri"
+        volumeMounts:
+        - name: customer-service-volume 
+          mountPath: "/deployments/config" 
+          readOnly: true
+      volumes:
+      - name: customer-service-volume
+        configMap:
+          name: customer-service-config-map
+          items:
+          - key: spring.application.name
+            path: bootstrap.properties
+          - key: spring.cloud.config.uri
+            path: bootstrap.properties
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: customer
+spec:
+  type: NodePort
+  selector:
+    app: customer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: customer-service-config-map
+  namespace: default
+  labels:
+    name: customer-service-config-map
+data:
+  "spring.application.name": "customer-service"
+  "spring.cloud.config.uri": "http://192.168.99.100:31564"
+        

@@ -1,0 +1,72 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: eureka
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+      - name: eureka
+        image: hugodias/eureka-service:1.0.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: server.port
+          valueFrom:
+           configMapKeyRef:
+              name: eureka-service-config-map
+              key: "server.port"
+        volumeMounts:
+        - name: eureka-service-volume 
+          mountPath: "/deployments/config" 
+          readOnly: true
+      volumes:
+      - name: eureka-service-volume
+        configMap:
+          name: eureka-service-config-map
+          items:
+          - key: spring.application.name
+            path: application.properties
+          - key: server.port
+            path: application.properties
+          - key: eureka.instance.hostname
+            path: application.properties
+          - key: eureka.instance.client.registerWithEureka
+            path: application.properties
+          - key: eureka.instance.client.fetchRegistry
+            path: application.properties
+          - key: eureka.instance.client.serviceUrl.defaultZone
+            path: application.properties
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: eureka-service
+spec:
+  type: NodePort
+  selector:
+    app: eureka
+  ports:
+    - protocol: TCP
+      port: 8761
+      targetPort: 8761
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: eureka-service-config-map
+  namespace: default
+  labels:
+    name: eureka-service-config-map
+data:
+  "spring.application.name": "eureka-service-registry"
+  "server.port": "8761"
+  "eureka.instance.hostname": "*/dev"
+  "eureka.instance.client.registerWithEureka": "false"
+  "eureka.instance.client.fetchRegistry": "false"
+  "eureka.instance.client.serviceUrl.defaultZone": "http://${eureka.instance.hostname}:${server.port}/eureka/"
+  
+      
