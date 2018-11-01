@@ -46,15 +46,16 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
-    compile('org.springframework.cloud:spring-cloud-starter-config')
-	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('org.springframework.boot:spring-boot-starter-web')
-	compile("org.springframework.boot:spring-boot-starter-batch")
-	compile("org.springframework.boot:spring-boot-starter-data-mongodb")
-    compile('com.google.code.gson:gson')
+    compile'org.springframework.cloud:spring-cloud-starter-config'
+	compile'org.springframework.boot:spring-boot-starter-actuator'
+	compile'org.springframework.boot:spring-boot-starter-web'
+	compile"org.springframework.boot:spring-boot-starter-batch"
+	compile"org.springframework.boot:spring-boot-starter-data-mongodb"
     compile 'org.springframework.cloud:spring-cloud-kubernetes-core:0.3.0.RELEASE' 
-    compile 'org.projectlombok:lombok'
+    compile 'org.springframework.cloud:spring-cloud-starter-vault-config'
     compile 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    compile 'com.google.code.gson:gson'
+    compile 'org.projectlombok:lombok'
     compile 'com.querydsl:querydsl-mongodb'
     compile 'com.querydsl:querydsl-apt'
     

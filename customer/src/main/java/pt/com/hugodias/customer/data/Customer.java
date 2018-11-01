@@ -1,5 +1,8 @@
 package pt.com.hugodias.customer.data;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection="customers")
 public interface Customer {
 
 	public String getId();

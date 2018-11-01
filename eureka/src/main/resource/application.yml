@@ -5,9 +5,20 @@ server:
   port: 8761
 eureka: 
   instance:
+    leaseRenewalIntervalInSeconds: 10
+    health-check-url-path: /actuator/health
     hostname: localhost
     client:
       registerWithEureka: false
+      registryFetchIntervalSeconds: 5
       fetchRegistry: false
       serviceUrl: 
         defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"  
+  endpoint:
+    health:
+      show-details: ALWAYS

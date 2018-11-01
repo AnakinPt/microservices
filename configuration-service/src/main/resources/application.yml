@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: configserver
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations: file:///D:/config
+        vault:
+          host: localhost
+          port: 8200
+          scheme: http
+          kvVersion: 2
+          token: 479c182e-693f-186a-c156-1f994322ffd6
+  profiles:
+    active: native, vault
+server:
+  port: 8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
